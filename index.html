@@ -1,1 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unwired — Interactive Journal</title>
+
+<style>
+:root{
+  --bg:#f6f1ea;
+  --paper:#ffffff;
+  --ink:#1c1c1c;
+  --muted:#6b6b6b;
+  --border:rgba(0,0,0,.12);
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.5;
+}
+.wrapper{
+  max-width:900px;
+  margin:0 auto;
+  padding:16px;
+}
+.header{
+  margin-bottom:16px;
+}
+.header h1{
+  margin:0;
+  font-size:20px;
+  letter-spacing:.02em;
+}
+.header p{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:13px;
+}
+select{
+  width:100%;
+  padding:10px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  margin-bottom:16px;
+}
+.card{
+  background:var(--paper);
+  border-radius:var(--radius);
+  padding:18px;
+  border:1px solid var(--border);
+}
+h2{
+  margin-top:0;
+}
+.prompt{
+  margin-bottom:18px;
+}
+label{
+  font-weight:600;
+  display:block;
+  margin-bottom:6px;
+}
+.hint{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:6px;
+}
+textarea{
+  width:100%;
+  min-height:110px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  padding:10px;
+  font-size:14px;
+}
+.actions{
+  margin-top:16px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+button{
+  padding:10px 14px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:#fff;
+  cursor:pointer;
+}
+.small{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:12px;
+}
+@media print{
+  body{background:#fff}
+  .actions, select, .header{display:none}
+}
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+
+<div class="header">
+  <h1>Unwired — Interactive Journal</h1>
+  <p>Type directly into the boxes. Your responses save automatically on this device.</p>
+</div>
+
+<select id="moduleSelect"></select>
+
+<div class="card" id="journal"></div>
+
+<div class="actions">
+  <button onclick="window.print()">Download / Print PDF</button>
+  <button onclick="clearModule()">Clear This Module</button>
+</div>
+
+<div class="small">
+  Tip: If you change devices or browsers, your entries will not carry over.
+</div>
+
+</div>
+
+<script>
+const STORAGE_KEY = "unwired_journal";
+
+const modules = [
+{
+id:"m1",
+title:"Module 1 — The Reality Collapse",
+prompts:[
+["What parts of myself did I adapt or suppress to survive this relationship?","Name behaviours without judging them."],
+["What did I begin to doubt about myself — and when?","Memory, emotions, intuition, worth, needs."],
+["What did I normalise that I never want to normalise again?","Be honest. No minimising."],
+["What is one sentence of truth I want to return to when I spiral?","Example: My confusion was a response to manipulation."],
+["One small act of self-trust I can practise this week is…","Make it practical and doable."]
+]
+},
+{
+id:"m2",
+title:"Module 2 — Gaslighting & Psychological Reprogramming",
+prompts:[
+["What self-doubting phrases repeat most often in my mind?","Write them exactly as they sound."],
+["Whose voice do these thoughts resemble?","A person, tone, or dynamic."],
+["What do I know I experienced, even if it was denied?","Facts + impact."],
+["What would a grounded inner voice say instead?","Rewrite with steadiness, not force."],
+["Where can I practise trusting my perception this week?","Choose something small and safe."]
+]
+},
+{
+id:"m3",
+title:"Module 3 — Trauma Bonds",
+prompts:[
+["When I miss them, what am I really craving?","Comfort, safety, validation, certainty."],
+["What did the relationship regulate for me?","Be honest about the reward."],
+["What fantasy do I return to — and what is the reality?","Two columns if helpful."],
+["What is my 10-minute craving protocol?","What I do instead of reaching out."],
+["What would choosing myself look like today?","Gently name it."]
+]
+},
+{
+id:"m4",
+title:"Module 4 — Shame & Visibility",
+prompts:[
+["Where do I still make myself smaller to feel safe?","Relationships, work, family."],
+["What do I fear would happen if I was fully seen?","Name the fear plainly."],
+["What part of me learned to disappear — and why?","Offer compassion."],
+["What is one tiny way I can show up more this week?","Micro, not dramatic."],
+["What do I want to believe about my right to exist?","Write it like a vow."]
+]
+},
+{
+id:"m5",
+title:"Module 5 — Financial Abuse & Scarcity",
+prompts:[
+["What money fears feel connected to the abuse?","Control, dependency, instability."],
+["What does stability feel like in my body?","Notice sensations."],
+["What scarcity belief am I ready to question?","Example: rest equals danger."],
+["What would a safety-based money choice look like?","One small example."],
+["One gentle resource-building step I can take is…","Keep it realistic."]
+]
+},
+{
+id:"m6",
+title:"Module 6 — What If I'm the Narcissist?",
+prompts:[
+["When does this fear usually arise?","After conflict, anger, boundaries."],
+["How does accountability feel vs self-attack in my body?","Name the difference."],
+["What evidence do I have of empathy and conscience?","Real examples."],
+["What would accountability without annihilation look like?","Repair, learning, boundaries."],
+["One statement of moral clarity I want to keep is…","Write it clearly."]
+]
+},
+{
+id:"m7",
+title:"Module 7 — Boundaries Without Collapse",
+prompts:[
+["What boundary feels most needed right now?","Be specific."],
+["What do I fear will happen if I hold it?","Name the fear."],
+["What is the simplest way to state this boundary?","One or two sentences."],
+["What does my body need after setting it?","Aftercare matters."],
+["What would trusting myself over fear look like?","Be honest."]
+]
+},
+{
+id:"m8",
+title:"Module 8 — Nervous System Safety",
+prompts:[
+["What does activation look like in my body?","Fight, flight, freeze, shutdown."],
+["What helps me return to baseline?","List a few tools."],
+["What does peace feel like, even briefly?","Notice sensations."],
+["What is my daily safety ritual?","10 minutes or less."],
+["One consistent practice I can try this week is…","Keep it small."]
+]
+}
+];
+
+const select = document.getElementById("moduleSelect");
+const journal = document.getElementById("journal");
+
+modules.forEach(m=>{
+  const o=document.createElement("option");
+  o.value=m.id;
+  o.textContent=m.title;
+  select.appendChild(o);
+});
+
+function loadModule(id){
+  const mod=modules.find(m=>m.id===id);
+  journal.innerHTML="";
+  const h=document.createElement("h2");
+  h.textContent=mod.title;
+  journal.appendChild(h);
+
+  mod.prompts.forEach((p,i)=>{
+    const d=document.createElement("div");
+    d.className="prompt";
+    d.innerHTML=`
+      <label>${p[0]}</label>
+      <div class="hint">${p[1]}</div>
+      <textarea data-key="${id}_${i}"></textarea>
+    `;
+    journal.appendChild(d);
+  });
+
+  document.querySelectorAll("textarea").forEach(t=>{
+    t.value=localStorage.getItem(STORAGE_KEY+t.dataset.key)||"";
+    t.oninput=()=>localStorage.setItem(STORAGE_KEY+t.dataset.key,t.value);
+  });
+}
+
+function clearModule(){
+  if(!confirm("Clear all answers for this module?")) return;
+  const id=select.value;
+  document.querySelectorAll("textarea").forEach(t=>{
+    localStorage.removeItem(STORAGE_KEY+t.dataset.key);
+    t.value="";
+  });
+}
+
+select.onchange=()=>loadModule(select.value);
+
+loadModule(modules[0].id);
+</script>
+</body>
+</html>
 
