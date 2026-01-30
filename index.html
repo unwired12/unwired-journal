@@ -110,7 +110,7 @@ button{
   <p>Type directly into the boxes. Your responses save automatically on this device.</p>
 </div>
 
-<select id="moduleSelect"></select>
+<select id="moduleSelect" style="display:none;"></select>
 
 <div class="card" id="journal"></div>
 
@@ -264,7 +264,12 @@ function clearModule(){
 
 select.onchange=()=>loadModule(select.value);
 
-loadModule(modules[0].id);
+const params = new URLSearchParams(window.location.search);
+const moduleFromURL = params.get("module");
+const validModule = modules.find(m => m.id === moduleFromURL);
+
+loadModule(validModule ? validModule.id : modules[0].id);
+
 </script>
 </body>
 </html>
